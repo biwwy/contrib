@@ -37,3 +37,4 @@ use-kubernetes-cluster-service
 user-whitelist
 whitelist-override-label
 error-page
+balance-algorithm
