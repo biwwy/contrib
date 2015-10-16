@@ -36,6 +36,7 @@ import (
 
 type config struct {
 	etcdServers string
+	etcdConfig  string
 	key         string
 	whoami      string
 	ttl         uint64
@@ -138,7 +139,8 @@ func copyFile(src, dest string) error {
 
 func initFlags(c *config) {
 	pflag.StringVar(&c.etcdServers, "etcd-servers", "", "The comma-seprated list of etcd servers to use")
-	pflag.StringVar(&c.key, "key", "", "The key to use for the lock")
+	pflag.StringVar(&c.etcdConfig, "etcd-config", "", "The config file for etcd client.")
+    pflag.StringVar(&c.key, "key", "", "The key to use for the lock")
 	pflag.StringVar(&c.whoami, "whoami", "", "The name to use for the reservation.  If empty use os.Hostname")
 	pflag.Uint64Var(&c.ttl, "ttl-secs", 30, "The time to live for the lock.")
 	pflag.StringVar(&c.src, "source-file", "", "The source file to copy from.")
@@ -147,8 +149,8 @@ func initFlags(c *config) {
 }
 
 func validateFlags(c *config) {
-	if len(c.etcdServers) == 0 {
-		glog.Fatalf("--etcd-servers=<server-list> is required")
+	if len(c.etcdServers) == 0 && len(c.etcdConfig) == 0 {
+		glog.Fatalf("--etcd-servers=<server-list> or --etcd-config=<config.json> is required")
 	}
 	if len(c.key) == 0 {
 		glog.Fatalf("--key=<some-key> is required")
@@ -176,7 +178,16 @@ func main() {
 	validateFlags(&c)
 
 	machines := strings.Split(c.etcdServers, ",")
-	etcdClient := etcd.NewClient(machines)
+	var etcdClient *etcd.Client
+	if c.etcdConfig != "" {
+		var err error
+		etcdClient, err = etcd.NewClientFromFile(c.etcdConfig)
+		if err != nil {
+			glog.Fatal(err)
+		}
+	} else {
+		etcdClient = etcd.NewClient(machines)
+	}
 
 	c.leaseAndUpdateLoop(etcdClient)
 }

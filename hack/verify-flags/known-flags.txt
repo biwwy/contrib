@@ -1,5 +1,7 @@
 Found flags in golang files not in the list of known flags. Please add these to hack/verify-flags/known-flags.txt
 api-token
+etcd-servers
+etcd-config
 blunderbuss-config
 blunderbuss-reassign
 current-release-pr
@@ -35,5 +37,3 @@ use-kubernetes-cluster-service
 user-whitelist
 whitelist-override-label
 error-page
-balance-algorithm
-
